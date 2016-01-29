@@ -1,5 +1,3 @@
-#include <RTClib.h>
-
 /*
  * Sam Dougherty
  * 2016012T1724
@@ -240,7 +238,6 @@ void doorControll(){}
 		//open door if 0 close door if 1 
 		if doorOpen = 0 {
 			//check if door is open
-			
 		}
 		if doorOpen = 1 {
 			
