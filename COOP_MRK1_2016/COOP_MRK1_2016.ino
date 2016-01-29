@@ -1,8 +1,7 @@
 /*
  * Sam Dougherty
- * 2016012T1724
+ * ampsoma@gmail.com
  * Displays sunset sunrise on lcd
- * USES CODE FROM LCD_ON_OFF
  * i2c addresses:
  * lcd 0x20
  * rtc 0x68
@@ -45,7 +44,8 @@ const int ledPin = 13; // pin 13 LED
 
 //Global program variables
 int buttonState; // for button debounce
-int lastButtonState = HIGH; //for button debounce
+int lastBTN_1State = HIGH; //for button debounce
+int lastBTN_2State= HIGH;
 int LCDState = HIGH; //lcd backlight controll trigger
 int door;
 
@@ -193,6 +193,26 @@ void lcdBkLt() {
 
 void lcdDisplay(){
 	
+	
+    int reading = digitalRead(BTN_2);
+    if (reading != lastButtonState) {
+      lastDebounceTime = millis();
+    }
+    if ((millis() - lastDebounceTime) > debounceDelay) {
+      if (reading != buttonState) {
+        buttonState = reading;
+        if (buttonState == HIGH) {
+          LCDState = !LCDState;
+        }
+      }
+    }
+    lcd.setBacklight(LCDState);
+    lastButtonState = reading;
+ 
+  }
+	
+	
+
     lcd.setCursor(0, 0);
     lcd.print(year());
     //lcd.print(".");
