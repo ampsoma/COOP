@@ -18,8 +18,17 @@
 #define DS1307_ADDRESS 0x68
 #define DEBUG 1  // Set to 1 to enable debug messages through serial port monitor
 
+//Pinout on Arduino Board, what connects to where
+#define BTN_1 2 //button one
+#define BTN_2 3 //button two
+#define LMTSW_U 4 //upper limit reed switch
+#define LMTSW_L 5 //lower limit reed switch
+#define RLY_1 6 //relay one trigger
+#define RLY_2 7 //relsay two trigger
+#define ledPin 13 //effin onboard led pin
 
 //LOCATION (poor farm via google earth estimation)
+
 float const LAT = 44.0677528, LONG = -072.4842056; //lat(S=neg),long(W=neg) 
 //TIME ZONE
 int const TMZN = -5; // tmzn IS EST (w/o DST) is UTC -5
@@ -33,17 +42,8 @@ int minNow, minLast = -1, hourNow, hourLast = -1, minOfDay; //time parts to trig
 //-1 init so hour/min last inequality is triggered the first time around 
 int mSunrise, mSunset; //sunrise and sunset expressed as minute of day (0-1439)
 
-//Pinout on Arduino Board, what connects to where
-const int BTN_1 = 2; //button one
-const int BTN_2 = 3; //button two
-const int LMTSW_U = 4; //upper limit reed switch
-const int LMTSW_L = 5; //lower limit reed switch
-const int RLY_1 = 6; //relay one trigger
-const int RLY_2 = 7; //relsay two trigger
-const int ledPin = 13; // pin 13 LED 
-
 //Global program variables
-int buttonState; // for button debounce
+int BTNState; // for button debounce
 int lastBTN_1State = HIGH; //for button debounce
 int lastBTN_2State= HIGH;
 int LCDState = HIGH; //lcd backlight controll trigger
@@ -178,9 +178,9 @@ void lcdBkLt() {
     lastDebounceTime = millis();
   }
   if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (reading != buttonState) {
-      buttonState = reading;
-      if (buttonState == HIGH) {
+    if (reading != BTNState) {
+      BTNState = reading;
+      if (BTNState == HIGH) {
         LCDState = !LCDState;
       }
     }
@@ -199,9 +199,9 @@ void lcdDisplay(){
       lastDebounceTime = millis();
     }
     if ((millis() - lastDebounceTime) > debounceDelay) {
-      if (reading != buttonState) {
-        buttonState = reading;
-        if (buttonState == HIGH) {
+      if (reading != BTNState) {
+        BTNState = reading;
+        if (BTNState == HIGH) {
           LCDState = !LCDState;
         }
       }
