@@ -201,6 +201,9 @@ void lcdDisplay(){
 			if doorstate=4{ //open
 				lcd.print("|OPEN|");
 			}
+			else {
+				lcd.print("?????")
+			}
 			//Time
 			lcd.setCursor(10,0);
 		    if(hour() < 10){
@@ -226,17 +229,50 @@ void lcdDisplay(){
 			if srss[4] <10){
 				s += "0";}
 			s += srss[4];
-			lcd.print(r + s );
-		}
+			lcd.print(r + s);
+		} //done
 		if dispscrn==2{ //moon % full phase and waxing and waining
 		
 		}
-		
 		if dispscrn==3{ //day of week (sat-sun) and date iso
-		
+			//day of the week
+			lcd.setCursor(0,0)
+			if(PoorFarm.DayOfWeek(the_time) == 1) lcd.print("Sunday");
+			if(PoorFarm.DayOfWeek(the_time) == 2) lcd.print("Monday");
+			if(PoorFarm.DayOfWeek(the_time) == 3) lcd.print("Tuesday");
+			if(PoorFarm.DayOfWeek(the_time) == 4) lcd.print("Wensday");
+			if(PoorFarm.DayOfWeek(the_time) == 5) lcd.print("Thursday");
+			if(PoorFarm.DayOfWeek(the_time) == 6) lcd.print("Friday");
+			if(PoorFarm.DayOfWeek(the_time) == 7) lcd.print("Saturday");
+			//month
+			lcd.setCursor(0,8)
+			if(PoorFarm.month() == 1) lcd.print("Jan"); 
+			if(PoorFarm.month() == 2) lcd.print("Feb"); 
+			if(PoorFarm.month() == 3) lcd.print("Mar"); 
+			if(PoorFarm.month() == 4) lcd.print("Apr"); 
+			if(PoorFarm.month() == 5) lcd.print("May"); 
+			if(PoorFarm.month() == 6) lcd.print("Jun"); 
+			if(PoorFarm.month() == 7) lcd.print("Jul"); 
+			if(PoorFarm.month() == 8) lcd.print("Aug"); 
+			if(PoorFarm.month() == 9) lcd.print("Sep"); 
+			if(PoorFarm.month() == 10) lcd.print("Oct"); 
+			if(PoorFarm.month() == 11) lcd.print("Nov"); 
+			if(PoorFarm.month() == 12) lcd.print("Dec"); 
+			//date
+			lcd.setCursor(0,6);
+			y = year();
+			m = month();
+			d = day();
+			t = string ('y');
+			
+			if(m < 10 ) t += "0";
+			t += m;
+			if(d < 10) t+= "0";
+			t += d
+			
 		}
 		if dispscrn==4{//uptime
-		
+			if 
 		}
 		if pState != HIGH{
 			pstate = HIGH;
