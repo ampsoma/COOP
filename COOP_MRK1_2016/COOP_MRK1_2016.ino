@@ -15,9 +15,9 @@
 #include <TimeLib.h>    //time stuff
 
 //super global variables, cant be changed after program compiles
-#define DS1307_ADDRESS 0x68
-#define DEBUG 1  // Set to 1 to enable debug messages through serial port monitor
-
+#define DS1307_ADDRESS 0x68 //adress fir de RTC
+#define DEBUG 1  //set to 1 to enable debug messages through serial port monitor
+#define debounceDelay 50 //debounce delay in mills when checking switches.
 //Pinout on Arduino Board, what connects to where
 #define BTN_1 2 //button one
 #define BTN_2 3 //button two
@@ -27,17 +27,16 @@
 #define RLY_2 7 //relsay two trigger
 #define ledPin 13 //effin onboard led pin
 
-//LOCATION (poor farm via google earth estimation)
-
+//LOCATION (springtailfarm via google earth estimation)
 float const LAT = 44.0677528, LONG = -072.4842056; //lat(S=neg),long(W=neg) 
 //TIME ZONE
 int const TMZN = -5; // tmzn IS EST (w/o DST) is UTC -5
-int const ofset_am = 30;//open the door how much later after "sunrise" as calculated. in min -earlier +later
-int const ofset_pm = -30;//close door how much later after "sunset" as calculated. in min -earlier + later
+int const ofset_am = 30;//open the door how much later after "sunrise" as calculated. in min, -earlier +later
+int const ofset_pm = -30;//close door how much later after "sunset" as calculated. in min, -earlier + later
 
 TimeLord PoorFarm; // Initilizes Timelord instance PoorFarm
 byte sunTime[]  = {0, 0, 0, 20, 1, 16}; // 20 jan 16 to start, rtc fixes this 
-byte srss[] = {0,0,0,0}; // [srhr,srmn,sshr,ssmn]
+byte srss[] = {0,0,0,0}; // sunrise,sunset array [srhr,srmn,sshr,ssmn]
 int minNow, minLast = -1, hourNow, hourLast = -1, minOfDay; //time parts to trigger various actions.
 //-1 init so hour/min last inequality is triggered the first time around 
 int mSunrise, mSunset; //sunrise and sunset expressed as minute of day (0-1439)
@@ -51,7 +50,7 @@ int door;
 
 //Button debounce intervals (in miliseconds)
 long lastDebounceTime = 0;
-long debounceDelay = 50;
+
 
 //connect to lcd
 LiquidCrystal lcd(0);
@@ -173,46 +172,16 @@ void loop() {
 //////////////////////////////////////////////////////////////////////////
 void lcdBkLt() {
   
-  int reading = digitalRead(BTN_1);
-  if (reading != lastButtonState) {
-    lastDebounceTime = millis();
-  }
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (reading != BTNState) {
-      BTNState = reading;
+	int BTNState = sw_Debounce(BTN_1,lastBTN_1State))
       if (BTNState == HIGH) {
         LCDState = !LCDState;
-      }
-    }
-  }
+	}
   lcd.setBacklight(LCDState);
-  lastButtonState = reading;
- 
 }
-
 
 void lcdDisplay(){
 	
 	
-    int reading = digitalRead(BTN_2);
-    if (reading != lastButtonState) {
-      lastDebounceTime = millis();
-    }
-    if ((millis() - lastDebounceTime) > debounceDelay) {
-      if (reading != BTNState) {
-        BTNState = reading;
-        if (BTNState == HIGH) {
-          LCDState = !LCDState;
-        }
-      }
-    }
-    lcd.setBacklight(LCDState);
-    lastButtonState = reading;
- 
-  }
-	
-	
-
     lcd.setCursor(0, 0);
     lcd.print(year());
     //lcd.print(".");
@@ -251,7 +220,7 @@ void lcdDisplay(){
 	lcd.print(door);
 }
 
-void doorControll(){}
+void doorControll(){
 	doorOpen = (minOfDay < (mSunrise + ofset_am) or minOfDay >= (mSunset + ofset_pm));	
 	
 	if overide == 0 {
@@ -265,10 +234,21 @@ void doorControll(){}
 	}
 }
 
-
-
-
-
+int sw_Debounce (int inpt, int btnState){
+	
+    int reading = digitalRead(inpt);
+	
+    if (reading != btnState) {
+      lastDebounceTime = millis();
+    }
+    if ((millis() - lastDebounceTime) > debounceDelay) {
+      if (reading != btnState) {
+        btnState = reading;
+      }
+  	}
+	return (btnState)
+	
+}
 
 
 
