@@ -42,7 +42,8 @@ int minNow, minLast = -1, hourNow, hourLast = -1, minOfDay; //time parts to trig
 int mSunrise, mSunset; //sunrise and sunset expressed as minute of day (0-1439)
 
 //Global program variables
-int BTNState; // for button debounce
+int BKLT_State; //blacklight state
+int DISP_State; //display state counter
 int lastBTN_1State = HIGH; //for button debounce
 int lastBTN_2State= HIGH;
 int LCDState = HIGH; //lcd backlight controll trigger
@@ -172,7 +173,7 @@ void loop() {
 //////////////////////////////////////////////////////////////////////////
 void lcdBkLt() {
   
-	int BTNState = sw_Debounce(BTN_1,lastBTN_1State))
+	int BKLT_State = sw_Debounce(BTN_1,lastBTN_1State))
       if (BTNState == HIGH) {
         LCDState = !LCDState;
 	}
@@ -180,6 +181,81 @@ void lcdBkLt() {
 }
 
 void lcdDisplay(){
+	t = String("T");
+	r = String("Rise");
+	s = String(" Set");
+	int pState = HIGH; // previous display state
+	if LCDState==HIGH { //display backlight on
+		if dispscrn==1{ //doorstate w/ time, sr, st
+			//door state 
+			lcd.setCursor(0, 0);
+			if doorstate=1{ //closed
+				lcd.print("|CLOSED|");
+			}
+			if doorstate=2{ //closing
+				lcd.print("|--VV--|");
+			}
+			if doorstate=3{ //opening
+				lcd.print("|--^^--|");
+			}
+			if doorstate=4{ //open
+				lcd.print("|OPEN|");
+			}
+			//Time
+			lcd.setCursor(10,0);
+		    if(hour() < 10){
+		    	t += "0";
+			}
+			t += hour();	
+		    if(minute() < 10){
+		    	t += "0";
+			}
+		    t += minute();
+			lcd.print(t);
+			//sunrise sunset disp
+			lcd.setCursor(0,2);
+			if srss[1] <10){
+				r += "0";}
+			r += srss[1];
+			if srss[2] <10){
+				r += "0";}
+			r += srss[2];
+			if srss[3] <10){
+				s += "0";}
+			s += srss[3];
+			if srss[4] <10){
+				s += "0";}
+			s += srss[4];
+			lcd.print(r + s );
+		}
+		if dispscrn==2{ //moon % full phase and waxing and waining
+		
+		}
+		
+		if dispscrn==3{ //day of week (sat-sun) and date iso
+		
+		}
+		if dispscrn==4{//uptime
+		
+		}
+		if pState != HIGH{
+			pstate = HIGH;
+		}
+	}
+	
+	if LCDState == LOW{ //display backlight off
+		if pState = HIGH{
+			lcd.clear();
+			pstate = LOW;
+		}
+	}	
+}
+	
+	//time and date
+	//alternate sun rise sun set time and ofsetts
+	//door open/door closed/door moving
+	//door overide active
+	
 	
 	
     lcd.setCursor(0, 0);
@@ -201,20 +277,7 @@ void lcdDisplay(){
     lcd.print("0");}
     lcd.print(minute());
     
-	  lcd.setCursor(0, 1);
-    lcd.print("O:");
-	  if(srss[1] < 10){
-    lcd.print("0");}
-    lcd.print(srss[1]);
-	  if(srss[2] < 10){
-    lcd.print("0");}
-    lcd.print(srss[2]);
-	  lcd.print(" C:");
-	  if(srss[3] < 10){
-    lcd.print("0");}
-    lcd.print(srss[3]);
-	  if(srss[4] < 10){
-    lcd.print("0");}
+	 
     lcd.print(srss[4]);
 	lcd.print(" ");
 	lcd.print(door);
