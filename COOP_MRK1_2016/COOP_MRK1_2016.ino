@@ -36,7 +36,7 @@ int const ofset_pm = -30;//close door how much later after "sunset" as calculate
 
 TimeLord PoorFarm; // Initilizes Timelord instance PoorFarm
 byte sunTime[]  = {0, 0, 0, 20, 1, 16}; // 20 jan 16 to start, rtc fixes this 
-byte srss[] = {0,0,0,0}; // sunrise,sunset array [srhr,srmn,sshr,ssmn]
+byte srss[2][2] = {{0,0},{0,0}}; // sunrise,sunset array [srhr,srmn,sshr,ssmn]
 int minNow, minLast = -1, hourNow, hourLast = -1, minOfDay; //time parts to trigger various actions.
 //-1 init so hour/min last inequality is triggered the first time around 
 int mSunrise, mSunset; //sunrise and sunset expressed as minute of day (0-1439)
@@ -46,9 +46,10 @@ int BKLT_State; //blacklight state
 int DISP_State; //display state counter
 int lastBTN_1State = HIGH; //for button debounce
 int lastBTN_2State= HIGH;
+int LMT_L = HIGH, LMT_U = HIGH;
 int LCDState = HIGH; //lcd backlight controll trigger
-int door;
-
+int doorstate;
+int pState = HIGH; // previous display state on backlight
 //Button debounce intervals (in miliseconds)
 long lastDebounceTime = 0;
 
@@ -96,7 +97,7 @@ void setup() {
   	pinMode(ledPin, OUTPUT);
   	digitalWrite(ledPin, LOW);
 	
-	}
+}
 ///////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////loop/////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -129,8 +130,8 @@ void loop() {
       sunTime[4] = month();
       sunTime[5] = year();
       PoorFarm.SunRise(sunTime); // Computes Sun Rise. Prints:
-	  srss[1] = sunTime[tl_hour];
-	  srss[2] = sunTime[tl_minute];
+	  srss[1][1] = sunTime[tl_hour];
+	  srss[1][2]= sunTime[tl_minute];
       mSunrise = sunTime[2] * 60 + sunTime[1];
        #if DEBUG == 1
               Serial.print(" Sunrise:");
@@ -143,8 +144,8 @@ void loop() {
       sunTime[4] = month();
       sunTime[5] = year();
       PoorFarm.SunSet(sunTime); // Computes Sun Set. Prints:
-    srss[3] = sunTime[tl_hour];
-    srss[4] = sunTime[tl_minute];
+    srss[2][1] = sunTime[tl_hour];
+    srss[2][2] = sunTime[tl_minute];
       mSunset = sunTime[2] * 60 + sunTime[1];
             #if DEBUG == 1
               Serial.print(" Sunset:");
@@ -184,9 +185,10 @@ void lcdDisplay(){
 	t = String("T");
 	r = String("Rise");
 	s = String(" Set");
-	int pState = HIGH; // previous display state
+	a = miniute();
+	b = 0
 	if LCDState==HIGH { //display backlight on
-		if dispscrn==1{ //doorstate w/ time, sr, st
+		if dispscrn==1{
 			//door state 
 			lcd.setCursor(0, 0);
 			if doorstate=1{ //closed
@@ -204,39 +206,31 @@ void lcdDisplay(){
 			else {
 				lcd.print("?????")
 			}
-			//Time
+			//time
 			lcd.setCursor(10,0);
-		    if(hour() < 10){
-		    	t += "0";
-			}
+		    if(hour() < 10) t += "0";
 			t += hour();	
-		    if(minute() < 10){
-		    	t += "0";
-			}
+		    if(minute() < 10) t += "0";
 		    t += minute();
 			lcd.print(t);
 			//sunrise sunset disp
 			lcd.setCursor(0,2);
-			if srss[1] <10){
-				r += "0";}
+			if(srss[1] <10)r += "0";
 			r += srss[1];
-			if srss[2] <10){
-				r += "0";}
+			if(srss[2] <10)r += "0";
 			r += srss[2];
-			if srss[3] <10){
-				s += "0";}
+			if(srss[3] <10) s += "0";
 			s += srss[3];
-			if srss[4] <10){
-				s += "0";}
+			if(srss[4] <10) s += "0";
 			s += srss[4];
 			lcd.print(r + s);
-		} //done
+		}  //doorstate w/ time, sunrise, sunset:: done
 		if dispscrn==2{ //moon % full phase and waxing and waining
 		
 		}
-		if dispscrn==3{ //day of week (sat-sun) and date iso
+		if dispscrn==3{ //day of week (sat-sun) and date
 			//day of the week
-			lcd.setCursor(0,0)
+			lcd.setCursor(0,6)
 			if(PoorFarm.DayOfWeek(the_time) == 1) lcd.print("Sunday");
 			if(PoorFarm.DayOfWeek(the_time) == 2) lcd.print("Monday");
 			if(PoorFarm.DayOfWeek(the_time) == 3) lcd.print("Tuesday");
@@ -245,87 +239,69 @@ void lcdDisplay(){
 			if(PoorFarm.DayOfWeek(the_time) == 6) lcd.print("Friday");
 			if(PoorFarm.DayOfWeek(the_time) == 7) lcd.print("Saturday");
 			//month
-			lcd.setCursor(0,8)
-			if(PoorFarm.month() == 1) lcd.print("Jan"); 
-			if(PoorFarm.month() == 2) lcd.print("Feb"); 
-			if(PoorFarm.month() == 3) lcd.print("Mar"); 
-			if(PoorFarm.month() == 4) lcd.print("Apr"); 
+			lcd.setCursor(1,0)
+			if(PoorFarm.month() == 1) lcd.print("January"); 
+			if(PoorFarm.month() == 2) lcd.print("Febuary"); 
+			if(PoorFarm.month() == 3) lcd.print("March"); 
+			if(PoorFarm.month() == 4) lcd.print("April"); 
 			if(PoorFarm.month() == 5) lcd.print("May"); 
-			if(PoorFarm.month() == 6) lcd.print("Jun"); 
-			if(PoorFarm.month() == 7) lcd.print("Jul"); 
-			if(PoorFarm.month() == 8) lcd.print("Aug"); 
-			if(PoorFarm.month() == 9) lcd.print("Sep"); 
-			if(PoorFarm.month() == 10) lcd.print("Oct"); 
-			if(PoorFarm.month() == 11) lcd.print("Nov"); 
-			if(PoorFarm.month() == 12) lcd.print("Dec"); 
+			if(PoorFarm.month() == 6) lcd.print("June"); 
+			if(PoorFarm.month() == 7) lcd.print("July"); 
+			if(PoorFarm.month() == 8) lcd.print("August"); 
+			if(PoorFarm.month() == 9) lcd.print("September"); 
+			if(PoorFarm.month() == 10) lcd.print("October"); 
+			if(PoorFarm.month() == 11) lcd.print("November"); 
+			if(PoorFarm.month() == 12) lcd.print("December"); 
 			//date
-			lcd.setCursor(0,6);
+			lcd.setCursor(1,10);
 			y = year();
 			m = month();
 			d = day();
-			t = string ('y');
-			
-			if(m < 10 ) t += "0";
-			t += m;
-			if(d < 10) t+= "0";
-			t += d
+			//t = string ('y');
+			//if(m < 10 ) t += "0";
+			//t += m;
+			//if(d < 10) t+= "0";
+			//t += d
+			lcd.print(m);
+			lcd.setCursor(1,12);
+			lcd.print(y);
 			
 		}
 		if dispscrn==4{//uptime
 			if 
 		}
 		if pState != HIGH{
-			pstate = HIGH;
+			pState = HIGH;
 		}
 	}
 	
 	if LCDState == LOW{ //display backlight off
 		if pState = HIGH{
 			lcd.clear();
-			pstate = LOW;
+			pState = LOW;
 		}
 	}	
 }
-	
-	//time and date
-	//alternate sun rise sun set time and ofsetts
-	//door open/door closed/door moving
-	//door overide active
-	
-	
-	
-    lcd.setCursor(0, 0);
-    lcd.print(year());
-    //lcd.print(".");
-    if(month() < 10){
-    lcd.print("0");}
-    lcd.print(month());
-    //lcd.print(".");
-    if(day() < 10){
-    lcd.print("0");}
-    lcd.print(day());
-    lcd.print("T");
-    if(hour() < 10){
-    lcd.print("0");}
-    lcd.print(hour());
-    lcd.print(":");
-    if(minute() < 10){
-    lcd.print("0");}
-    lcd.print(minute());
-    
-	 
-    lcd.print(srss[4]);
-	lcd.print(" ");
-	lcd.print(door);
-}
+
 
 void doorControll(){
 	doorOpen = (minOfDay < (mSunrise + ofset_am) or minOfDay >= (mSunset + ofset_pm));	
+	lmtu= sw_Debounce(LMTSW_U,LMT_U);
+	lmtl= sw_Debounce(LMTSW_L,LMT_L);
 	
 	if overide == 0 {
 		//open door if 0 close door if 1 
-		if doorOpen = 0 {
-			//check if door is open
+		if doorOpen == 0 {
+			if lmtu == HIGH { //check if door is open
+				#if DEBUG == 1
+				Serial.println("upper limit switch tripped");	
+				#else
+				if lmtl == LOW { //check if door is closed
+					
+				}
+			}
+				
+			
 		}
 		if doorOpen = 1 {
 			
