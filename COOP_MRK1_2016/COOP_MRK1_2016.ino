@@ -174,10 +174,8 @@ void loop() {
 //////////////////////////////////////////////////////////////////////////
 void lcdBkLt() {
   
-	int BKLT_State = sw_Debounce(BTN_1,lastBTN_1State))
-      if (BTNState == HIGH) {
-        LCDState = !LCDState;
-	}
+	int BKLT_State = sw_Debounce(BTN_1,lastBTN_1State);
+      if (BKLT_State == HIGH) LCDState = !LCDState;
   lcd.setBacklight(LCDState);
 }
 
@@ -295,7 +293,7 @@ void doorControll(){
 			if lmtu == HIGH { //check if door is open
 				#if DEBUG == 1
 				Serial.println("upper limit switch tripped");	
-				#else
+				#endif
 				if lmtl == LOW { //check if door is closed
 					
 				}
